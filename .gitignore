@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.env
+.venv/
+venv/
+
+# Build
+build/
+dist/
+*.egg-info/
+
+
+# Backup files
+*.bak
+
+# Test cache
+.pytest_cache/
+
+# Test program
+/locales/
+/prompts/
+error.log
+
+# Type checker cache
+.mypy_cache/
+shl-config.json
+shl-policy-config.json
+.shl_cache.json
+.language_detection_cache.json
+.languages_cache.json
+
+# Coverage
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# test project
+_version.py
+
+data.db
+config.conf
+.aider*
+
