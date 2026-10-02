@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ask_ubuntu_lite"
-version = "0.2.0"
+version = "0.2.1"
 description = "ASK Ubuntu Lite is a lightweight local assistant for Ubuntu Linux. It helps users understand commands, inspect the local system, and perform selected system operations through a controlled set of tools. It uses a local language model and provides tool-based access to system information without requiring a web server or a large application framework."
 readme = "README.md"
 requires-python = ">=3.8"
-license = { file = "LICENSE" }
+license = { file = "LICENSE.md" }
 authors = [
     { name = "Tuomas Lähteenmäki" },
 ]
@@ -56,6 +56,24 @@ Homepage = "https://codeberg.org/lahtis/ask_ubuntu_lite"
 Repository = "https://codeberg.org/lahtis/ask_ubuntu_lite"
 Issues = "https://codeberg.org/lahtis/ask_ubuntu_lite/issues"
 Documentation = "https://codeberg.org/lahtis/ask_ubuntu_lite/src/branch/main/doc"
+
+[tool.setuptools]
+py-modules = [
+    "appenv",
+    "cli",
+    "config",
+    "core",
+    "daemon",
+    "i18n",
+    "language",
+    "_version",
+]
+
+[tool.setuptools.packages.find]
+include = [
+    "tools",
+    "guard",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -2,7 +2,7 @@
 
 * **Author:** Tuomas Lähteenmäki
 * **License:** GPLv3
-* **Version:** 0.2.0
+* **Version:** 0.2.1
 * **Type:** Local Linux assistant
 
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
@@ -141,6 +141,8 @@ Replace `<model>` with the model name specified in your `config.toml`.
 Start the ASK Ubuntu Lite daemon with:
 
 ```bash
+source .venv/bin/activate
+
 python3 -m daemon
 ```
 
@@ -153,6 +155,8 @@ The daemon provides the background service used by the ASK Ubuntu Lite client.
 With the daemon running, start the client with:
 
 ```bash
+source .venv/bin/activate
+
 python3 -m cli
 ```
 

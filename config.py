@@ -4,7 +4,7 @@ Prioriteetti (korkeimmasta matalimpaan):
   1. Ympäristömuuttuja (esim. OLLAMA_URLS)
   2. ASK_CONFIG-tiedosto (polku ympäristömuuttujassa)
   3. config.toml konfiguraatiohakemistoista (appenv.config_search_dirs():
-     snapissa SNAP_USER_COMMON/config, sitten ~/.config/ask-ubuntu-mini)
+     snapissa SNAP_USER_COMMON/config, sitten ~/.config/ask-ubuntu-lite)
   4. ./config.toml VAIN jos ASK_ALLOW_LOCAL_CONFIG=1
      (muuten satunnaisen hakemistoon jätetyn config.toml:n lataaminen
      voisi vaihtaa mm. Ollama-palvelimen)
@@ -108,7 +108,7 @@ def _config_paths() -> list[Path]:
 def _default_config_text() -> str:
     """Return the default user configuration file contents."""
     return """# ASK Ubuntu Mini – konfiguraatio
-# Sijainti: ~/.config/ask-ubuntu-mini/config.toml
+# Sijainti: ~/.config/ask-ubuntu-lite/config.toml
 
 # Ollama-palvelimet. Ensimmäinen elossa oleva valitaan.
 # HUOM: anna vain perus-URL (http://host:port), EI /api/chat-polkua.
@@ -121,7 +121,7 @@ ollama_urls = [
 model = "llama3.1:8b"
 
 # Generoinnin lämpötila (0.0 = deterministinen, 1.0 = luova)
-temperature = 0.2
+temperature = 0.0
 
 # Kontekstin pituus tokeneina
 num_ctx = 8192
@@ -152,7 +152,7 @@ stop = [
     "based on the given functions",
 ]
 
-# HUOM: system_prompt on nyt ~/.config/ask-ubuntu-mini/system_prompts/-kansiossa:
+# HUOM: system_prompt on nyt ~/.config/ask-ubuntu-lite/system_prompts/-kansiossa:
 #   - core.toml      ydinprompti (sama kaikille kielille)
 #   - fi.toml        kielikohtainen lisäys
 # config.toml:n system_prompt on vain fallback, jos kansiota ei ole.

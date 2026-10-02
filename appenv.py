@@ -10,8 +10,8 @@ import shutil
 from pathlib import Path
 from typing import Mapping, Optional
 
-APP_SNAP_NAME_PREFIX = "ask-ubuntu-mini"
-APP_DIRNAME = "ask-ubuntu-mini"
+APP_SNAP_NAME_PREFIX = "ask-ubuntu-lite"
+APP_DIRNAME = "ask-ubuntu-lite"
 
 # Snapin omat kirjastopolut eivät saa vuotaa isäntäjärjestelmän komentoihin
 _STRIP_IN_SNAP = ("LD_LIBRARY_PATH", "LD_PRELOAD", "PYTHONHOME",

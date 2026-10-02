@@ -1,5 +1,5 @@
 # ASK Ubuntu Mini – configuration
-# Location: ~/.config/ask-ubuntu-mini/config.toml
+# Location: ~/.config/ask-ubuntu-lite/config.toml
 
 # Ollama servers. The first available server is selected.
 # NOTE: provide only the base URL (http://host:port), NOT the /api/chat path.
@@ -44,7 +44,7 @@ stop = [
     "based on the given functions",
 ]
 
-# NOTE: system_prompt is now located in ~/.config/ask-ubuntu-mini/system_prompts/:
+# NOTE: system_prompt is now located in ~/.config/ask-ubuntu-lite/system_prompts/:
 #   - core.toml      core prompt (same for all languages)
 #   - fi.toml        language-specific addition (automatic)
 # config.toml's system_prompt is only used as a fallback if the directory does not exist.
