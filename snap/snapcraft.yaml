@@ -1,0 +1,24 @@
+# Luonnos – tarkista entry point ja riippuvuudet omaan projektiisi.
+# Classic-confinement, koska työkalut ajavat isäntäjärjestelmän komentoja
+# (systemctl, journalctl, df, apt-cache, docker, git ...). Strict-snapin
+# base-levyssä näitä ei ole, ja ne näkisivät snapin oman tiedostojärjestelmän.
+name: ask-ubuntu
+base: core24
+version: "0.2.0"
+summary: Local Ask Ubuntu-style assistant
+description: Paikallinen Ubuntu-avustaja, jonka työkalut lukevat isäntäjärjestelmän tilaa.
+grade: devel
+confinement: classic
+
+apps:
+  ask-ubuntu:
+    command: bin/ask-ubuntu          # TODO: oma entry point
+    # Jos ajat taustapalveluna:
+    # daemon: simple
+    # restart-condition: on-failure
+
+parts:
+  app:
+    plugin: python
+    source: .
+    # python-packages: [...]         # TODO: riippuvuudet
