@@ -1,0 +1,109 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ask_ubuntu_lite"
+version = "0.2.0"
+description = "ASK Ubuntu Lite is a lightweight local assistant for Ubuntu Linux. It helps users understand commands, inspect the local system, and perform selected system operations through a controlled set of tools. It uses a local language model and provides tool-based access to system information without requiring a web server or a large application framework."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Tuomas Lähteenmäki" },
+]
+
+keywords = [
+    "ubuntu",
+    "linux",
+    "assistant",
+    "local-ai",
+    "ollama",
+    "self-healing-localization",
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Utilities",
+]
+
+dependencies = [
+    "self-healing-localization",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+doc = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.0",
+]
+
+[project.urls]
+Homepage = "https://codeberg.org/lahtis/ask_ubuntu_lite"
+Repository = "https://codeberg.org/lahtis/ask_ubuntu_lite"
+Issues = "https://codeberg.org/lahtis/ask_ubuntu_lite/issues"
+Documentation = "https://codeberg.org/lahtis/ask_ubuntu_lite/src/branch/main/doc"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "slow: marks tests that take longer to run",
+    "unit: unit tests",
+    "integration: integration tests",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "pass",
+]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.black]
+line-length = 88
+target-version = ["py38", "py39", "py310", "py311", "py312"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.pylint.main]
+ignore = ["tests"]
+jobs = 0
+
+[tool.pylint.messages_control]
+disable = [
+    "missing-docstring",
+    "too-many-arguments",
+    "too-many-instance-attributes",
+]
