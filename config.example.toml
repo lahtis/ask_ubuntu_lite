@@ -26,6 +26,7 @@ max_iterations = 5
 # User interface language override (eng, fin, sve, ...)
 # lang_code = "fin"
 
+# SHL machine translation
 m_translation_enabled = "true"
 
 # Stop sequences: stop generation when these strings are encountered
@@ -45,7 +46,7 @@ stop = [
 
 # NOTE: system_prompt is now located in ~/.config/ask-ubuntu-mini/system_prompts/:
 #   - core.toml      core prompt (same for all languages)
-#   - fi.toml        language-specific addition
+#   - fi.toml        language-specific addition (automatic)
 # config.toml's system_prompt is only used as a fallback if the directory does not exist.
 
 config_version = 1
