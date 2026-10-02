@@ -23,8 +23,8 @@ repeat_last_n = 256
 # Maximum number of consecutive tool calls before interruption
 max_iterations = 5
 
-# User interface language override (eng, fin, sve, ...)
-# lang_code = "fin"
+# User interface language override ISO 639-1 (en, fi, sv, ...)
+# lang_code = "fi"
 
 # SHL machine translation
 m_translation_enabled = "true"

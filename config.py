@@ -1,30 +1,32 @@
-"""Konfiguraation lataus.
+"""Configuration loading.
 
-Prioriteetti (korkeimmasta matalimpaan):
-  1. Ympäristömuuttuja (esim. OLLAMA_URLS)
-  2. ASK_CONFIG-tiedosto (polku ympäristömuuttujassa)
-  3. config.toml konfiguraatiohakemistoista (appenv.config_search_dirs():
-     snapissa SNAP_USER_COMMON/config, sitten ~/.config/ask-ubuntu-lite)
-  4. ./config.toml VAIN jos ASK_ALLOW_LOCAL_CONFIG=1
-     (muuten satunnaisen hakemistoon jätetyn config.toml:n lataaminen
-     voisi vaihtaa mm. Ollama-palvelimen)
-  5. Sisäänrakennetut oletukset
+Priority (highest to lowest):
+  1. Environment variable (e.g. OLLAMA_URLS)
+  2. ASK_CONFIG file (path specified by the environment variable)
+  3. config.toml from configuration directories (appenv.config_search_dirs():
+     SNAP_USER_COMMON/config in Snap, then ~/.config/ask-ubuntu-lite)
+  4. ./config.toml ONLY if ASK_ALLOW_LOCAL_CONFIG=1
+     (otherwise, loading a config.toml left in an arbitrary directory
+     could change e.g. the Ollama server)
+  5. Built-in defaults
 
 System prompt:
-  Ensisijaisesti ladataan system_prompts/-kansiosta (samoista hakemistoista):
-    - core.toml      ydinprompti (sama kaikille kielille)
-    - {lang}.toml    kielikohtainen lisäys (esim. fi.toml)
-  Jos kansiota ei ole, käytetään config.toml:n system_prompt-kenttää.
+  Primarily loaded from the system_prompts/ directory (from the same
+  configuration directories):
+    - core.toml      core prompt (same for all languages)
+    - {lang}.toml    language-specific addition (e.g. fi.toml)
+  If the directory does not exist, config.toml's system_prompt field
+  is used.
 
-Ollama-palvelimet:
-  Käytä `ollama_urls`-listaa. Ensimmäinen elossa oleva valitaan.
-  Vanha `ollama_url` (yksittäinen) tuetaan edelleen. Myös /api/chat-pääte
-  siivotaan automaattisesti pois.
+Ollama servers:
+  Use the `ollama_urls` list. The first available server is selected.
+  The legacy `ollama_url` (single URL) is still supported. Any
+  /api/chat suffix is also automatically removed.
 
 Ollama health check:
-  Health check käyttää Ollaman /api/version-endpointia.
-  Health checkin cache, timeout ja URL-kohtainen backoff ovat
-  konfiguroitavissa config.toml-tiedostossa.
+  The health check uses Ollama's /api/version endpoint.
+  The health check cache, timeout, and per-URL backoff are
+  configurable in config.toml.
 """
 import logging
 import os
@@ -38,11 +40,11 @@ from language import resolve_language
 
 logger = logging.getLogger(__name__)
 
-# ─── Polut ───────────────────────────────────────────────────
+# ─── Paths ───────────────────────────────────────────────────
 
 SYSTEM_PROMPTS_DIR = appenv.app_config_dir(create=False) / "system_prompts"
 
-# ─── Sisäänrakennetut oletukset ──────────────────────────────
+# ─── Built-in defaults ───────────────────────────────────────
 
 DEFAULTS = {
     "ollama_urls": ["http://localhost:11434"],
@@ -80,7 +82,7 @@ DEFAULTS = {
     ),
 }
 
-# Ympäristömuuttujien nimet kutakin avainta varten
+# Environment variable names for each configuration key
 ENV_MAP = {
     "ollama_urls": "OLLAMA_URLS",
     "ollama_url": "OLLAMA_URL",
@@ -99,45 +101,46 @@ ENV_MAP = {
 
 
 def _config_paths() -> list[Path]:
-    """Hakupolut järjestyksessä (lasketaan kutsuhetkellä)."""
+    """Return configuration search paths in priority order."""
     paths = [d / "config.toml" for d in appenv.config_search_dirs()]
     if os.environ.get("ASK_ALLOW_LOCAL_CONFIG") == "1":
         paths.append(Path("./config.toml"))
     return paths
 
+
 def _default_config_text() -> str:
     """Return the default user configuration file contents."""
-    return """# ASK Ubuntu Mini – konfiguraatio
-# Sijainti: ~/.config/ask-ubuntu-lite/config.toml
+    return """# ASK Ubuntu Mini – configuration
+# Location: ~/.config/ask-ubuntu-lite/config.toml
 
-# Ollama-palvelimet. Ensimmäinen elossa oleva valitaan.
-# HUOM: anna vain perus-URL (http://host:port), EI /api/chat-polkua.
+# Ollama servers. The first available server is selected.
+# NOTE: provide only the base URL (http://host:port), NOT the /api/chat path.
 ollama_urls = [
     "http://192.168.1.103:11434",
     "http://localhost:11434",
 ]
 
-# Oletusmalli
+# Default model
 model = "llama3.1:8b"
 
-# Generoinnin lämpötila (0.0 = deterministinen, 1.0 = luova)
+# Generation temperature (0.0 = deterministic, 1.0 = creative)
 temperature = 0.0
 
-# Kontekstin pituus tokeneina
+# Context length in tokens
 num_ctx = 8192
 num_predict = 300
 repeat_penalty = 1.3
 repeat_last_n = 256
 
-# Maksimimäärä peräkkäisiä työkalukutsuja ennen keskeytystä
+# Maximum number of consecutive tool calls before interruption
 max_iterations = 5
 
-# Käyttöliittymän kieli (eng, fin, sve, ...)
-# lang_code = "fin"
+# User interface language, ISO 639-1 (en, fi, sv, ...)
+# lang_code = "fi"
 
 m_translation_enabled = "true"
 
-# Stop-sekvenssit: generaation katkaisu näihin merkkijonoihin
+# Stop sequences: stop generation when these strings are encountered
 stop = [
     "```json",
     "```JSON",
@@ -152,10 +155,10 @@ stop = [
     "based on the given functions",
 ]
 
-# HUOM: system_prompt on nyt ~/.config/ask-ubuntu-lite/system_prompts/-kansiossa:
-#   - core.toml      ydinprompti (sama kaikille kielille)
-#   - fi.toml        kielikohtainen lisäys
-# config.toml:n system_prompt on vain fallback, jos kansiota ei ole.
+# NOTE: system_prompt is now located in ~/.config/ask-ubuntu-lite/system_prompts/:
+#   - core.toml      core prompt (same for all languages)
+#   - fi.toml        language-specific addition
+# config.toml's system_prompt is only used as a fallback if the directory does not exist.
 
 config_version = 1
 ollama_health_cache_ttl = 30
@@ -188,16 +191,18 @@ def _ensure_default_config() -> Path | None:
         )
         return None
 
-# ─── Kielikoodin siistiminen ─────────────────────────────────
+
+# ─── Language code normalization ─────────────────────────────
 
 _LANG_RE = re.compile(r"[A-Za-z]{2,3}(?:[-_][A-Za-z0-9]{2,8})?")
 
 
 def normalize_lang(code) -> str:
-    """Palauttaa kelvollisen kielikoodin tai 'en'.
+    """Return a valid language code or 'en'.
 
-    Koodista muodostetaan tiedostonimiä (fi.toml, fi.json), joten vain
-    muotoa 'fi' / 'en-US' / 'pt_BR' hyväksytään (ei polkuja, ei '..').
+    Language codes are used to construct filenames (fi.toml, fi.json),
+    so only formats such as 'fi', 'en-US', and 'pt_BR' are accepted.
+    Paths and '..' are not allowed.
     """
     code = str(code or "").strip()
     if _LANG_RE.fullmatch(code):
@@ -207,7 +212,8 @@ def normalize_lang(code) -> str:
     return "en"
 
 
-# ─── System prompt -lataus ───────────────────────────────────
+# ─── System prompt loading ───────────────────────────────────
+
 
 def _find_prompt_file(name: str) -> Path | None:
     for d in appenv.config_search_dirs():
@@ -215,8 +221,6 @@ def _find_prompt_file(name: str) -> Path | None:
         if f.exists():
             return f
     return None
-
-
 
 
 def _default_language_prompt(
@@ -289,13 +293,14 @@ def _ensure_system_prompts(
             e,
         )
 
-def _load_system_prompt(lang_code: str) -> str:
-    """Lataa ja yhdistä system prompt.
 
-    Prioriteetti:
+def _load_system_prompt(lang_code: str) -> str:
+    """Load and combine the system prompt.
+
+    Priority:
         1. system_prompts/core.toml + system_prompts/{lang}.toml
-        2. config.toml:n system_prompt-kenttä
-        3. DEFAULTS:n system_prompt
+        2. config.toml's system_prompt field
+        3. DEFAULTS's system_prompt
     """
     core_file = _find_prompt_file("core.toml")
     if core_file is None:
@@ -327,6 +332,7 @@ def _load_system_prompt(lang_code: str) -> str:
             logger.warning("Failed to load %s: %s", lang_file, e)
 
     return prompt
+
 
 # ─── System prompt hot reload ────────────────────────────────
 
@@ -375,8 +381,8 @@ def get_system_prompt() -> str:
     return prompt
 
 
+# ─── Loading ─────────────────────────────────────────────────
 
-# ─── Lataus ──────────────────────────────────────────────────
 
 def _load_toml(path: Path) -> dict:
     if not path.exists():
@@ -392,7 +398,7 @@ def _load_toml(path: Path) -> dict:
 
 
 def _find_config() -> tuple[dict, Path | None]:
-    """Etsii ja lataa konfiguraation. Palauttaa (data, polku)."""
+    """Find and load the configuration. Return (data, path)."""
     custom = os.environ.get("ASK_CONFIG")
     if custom:
         p = Path(appenv.expand_home(custom)).expanduser()
@@ -410,12 +416,12 @@ def _find_config() -> tuple[dict, Path | None]:
     return {}, None
 
 
-# ─── Config-migraatiot ───────────────────────────────────────
+# ─── Config migrations ───────────────────────────────────────
 
 CONFIG_VERSION = 1
 
-# Jokainen numeroitu lohko sisältää kyseisessä versiossa
-# lisätyt uudet asetukset.
+# Each numbered block contains the new settings
+# introduced in that version.
 _MIGRATION_DEFAULTS = {
     1: {
         "ollama_health_cache_ttl": 30,
@@ -637,7 +643,7 @@ def _file_int_list(key: str) -> list[int] | None:
 
 
 def _strip_api_suffix(url: str) -> str:
-    """Poistaa /api/*-päätteen URL:sta (core.py lisää polun itse)."""
+    """Remove an /api/* suffix from a URL (core.py adds the path itself)."""
     url = url.rstrip("/")
     for suffix in ("/api/chat", "/api/generate", "/api/tags", "/api/embed"):
         if url.endswith(suffix):
@@ -646,7 +652,7 @@ def _strip_api_suffix(url: str) -> str:
 
 
 def _resolve_ollama_urls() -> list[str]:
-    """Ratkaisee Ollama-URL-listat prioriteettijärjestyksessä."""
+    """Resolve Ollama URL lists according to the priority order."""
     env_urls = _env_list("OLLAMA_URLS")
     if env_urls:
         return [_strip_api_suffix(u) for u in env_urls]
@@ -669,7 +675,7 @@ def _resolve_ollama_urls() -> list[str]:
 
 
 def _to_bool(value) -> bool:
-    """Muuntaa true/false/1/0/yes/no/on/off-arvot boolean-tyypiksi."""
+    """Convert true/false/1/0/yes/no/on/off values to boolean."""
     if isinstance(value, bool):
         return value
     if isinstance(value, (int, float)):
@@ -696,8 +702,12 @@ _FLOAT_KEYS = {
 
 
 def _coerce_type(key: str, value):
-    """Muuntaa arvon oikeaan tyyppiin. Virheellinen arvo → oletus + varoitus
-    (aiemmin raaka merkkijono kaatoi käynnistyksen myöhemmin int()-kutsuun)."""
+    """Convert a value to the correct type.
+
+    Invalid values fall back to the default with a warning.
+    Previously, a raw string could cause startup to fail later
+    when passed to int().
+    """
     caster = int if key in _INT_KEYS else float if key in _FLOAT_KEYS else None
     if caster is None:
         return value
@@ -713,14 +723,14 @@ def _coerce_type(key: str, value):
 
 
 def get(key: str):
-    """Hakee asetuksen: env > tiedosto > oletus."""
+    """Get a setting using env > file > default priority."""
     if key == "ollama_urls":
         return _resolve_ollama_urls()
 
     if key == "ollama_health_backoff":
         env_name = ENV_MAP.get(key)
 
-        # Ympäristömuuttuja
+        # Environment variable
         if env_name:
             env_value = _env_int_list(env_name)
             if env_value is not None:
@@ -731,7 +741,7 @@ def get(key: str):
         if file_value is not None:
             return file_value
 
-        # Oletus
+        # Default
         return list(DEFAULTS[key])
 
     env_name = ENV_MAP.get(key)
@@ -755,10 +765,10 @@ def get(key: str):
     if key in DEFAULTS:
         return DEFAULTS[key]
 
-    raise KeyError(f"tuntematon asetus: {key}")
+    raise KeyError(f"unknown setting: {key}")
 
 
-# ─── Julkiset vakiot ─────────────────────────────────────────
+# ─── Public constants ────────────────────────────────────────
 
 OLLAMA_URLS = get("ollama_urls")
 OLLAMA_HEALTH_CACHE_TTL = float(get("ollama_health_cache_ttl"))
@@ -775,7 +785,7 @@ REPEAT_LAST_N = int(get("repeat_last_n"))
 STOP = list(get("stop") or [])
 MAX_ITERATIONS = max(1, min(20, int(get("max_iterations"))))
 
-# ─── Kielen ratkaisu ─────────────────────────────────────────
+# ─── Language resolution ─────────────────────────────────────
 
 _config_language = os.environ.get("ASK_LANG")
 
@@ -796,8 +806,8 @@ _ensure_system_prompts(
 
 SYSTEM_PROMPT = get_system_prompt()
 
-# Missä config ladattiin (debug-tarkoituksiin)
+# Configuration source (for debugging purposes)
 LOADED_FROM = _loaded_path
 
-# Vanha nimi taaksepäin yhteensopivuudelle (ensimmäinen URL)
+# Legacy name kept for backward compatibility (first URL)
 OLLAMA_URL = OLLAMA_URLS[0] if OLLAMA_URLS else DEFAULTS["ollama_urls"][0]
